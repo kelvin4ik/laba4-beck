@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REST API Форма</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: #eee; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .form-container { background: #2d2d2d; padding: 30px; border-radius: 10px; width: 100%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #555; border-radius: 5px; background: #1a1a1a; color: #fff; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #0066cc; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px;}
+        button:hover { background: #005bb5; }
+        #responseMessage { margin-top: 15px; text-align: center; font-weight: bold; }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2 style="text-align: center; margin-top: 0;">Реєстрація</h2>
+    <form id="apiForm">
+        <input type="text" id="name" placeholder="Ваше ім'я" required>
+        <input type="email" id="email" placeholder="Ваш Email" required>
+        <input type="number" id="age" placeholder="Ваш вік (від 18)" required min="18">
+        <button type="submit">Відправити на сервер</button>
+    </form>
+    <div id="responseMessage"></div>
+</div>
+
+<script>
+    document.getElementById('apiForm').addEventListener('submit', async function(event) {
+        event.preventDefault(); // Зупиняємо стандартну відправку форми
+
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const age = document.getElementById('age').value;
+        const msgDiv = document.getElementById('responseMessage');
+
+        // Додаткова клієнтська перевірка
+        if (age < 18) {
+            msgDiv.innerHTML = '<span class="error">Вам має бути 18 або більше років.</span>';
+            return;
+        }
+
+        try {
+            // Відправка POST запиту за REST принципами
+            const response = await fetch('/api/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json' // Вказуємо, що передаємо JSON
+                },
+                body: JSON.stringify({ name, email, age })
+            });
+
+            // Отримуємо відповідь сервера
+            const result = await response.json();
+
+            if (!response.ok) {
+                // Якщо статус не 2xx (наприклад 400 Bad Request)
+                throw new Error(result.error || 'Помилка сервера');
+            }
+
+            // Якщо все добре
+            msgDiv.innerHTML = `<span class="success">${result.message}</span>`;
+            document.getElementById('apiForm').reset(); // Очищаємо форму
+
+        } catch (error) {
+            msgDiv.innerHTML = `<span class="error">${error.message}</span>`;
+        }
+    });
+</script>
+
+</body>
+</html>
